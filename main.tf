@@ -166,8 +166,9 @@ resource "azurerm_virtual_machine_extension" "disk_init" {
   type_handler_version = "1.10"
 
   settings = jsonencode({
-    commandToExecute = "powershell -ExecutionPolicy Unrestricted -Command \"${replace(file("initialize-disks.ps1"), "\"", "\\\"")}\""
+    fileUris = [
+      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/initialize-disks.ps1"
+    ],
+    commandToExecute = "powershell -ExecutionPolicy Unrestricted -File initialize-disks.ps1"
   })
 }
-
-
