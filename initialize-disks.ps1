@@ -33,7 +33,7 @@ $lunMap = @{
     1 = @{ DriveLetter = 'E'; Label = 'SQLInstance' }
     2 = @{ DriveLetter = 'F'; Label = 'Data' }
     3 = @{ DriveLetter = 'G'; Label = 'Log' }
-		4 = @{ DriveLetter = 'H'; Label = 'Temporary Storage' }
+    4 = @{ DriveLetter = 'H'; Label = 'Temporary Storage' }
 }
 
 foreach ($lun in $lunMap.Keys) {
@@ -92,4 +92,12 @@ foreach ($lun in $lunMap.Keys) {
     } catch {
         Write-Warning "Partition or formatting failed for Disk #$($disk.Number): $($_.Exception.Message)"
     }
+}
+
+# Cleanup: Remove the scheduled task after successful execution
+try {
+    Unregister-ScheduledTask -TaskName "Initialize-Disks-PostBoot" -Confirm:$false -ErrorAction Stop
+    Write-Output "Scheduled task 'Initialize-Disks-PostBoot' removed after successful execution."
+} catch {
+    Write-Warning "Failed to remove scheduled task: $($_.Exception.Message)"
 }
