@@ -167,8 +167,9 @@ resource "azurerm_virtual_machine_extension" "disk_init" {
 
   settings = jsonencode({
     fileUris = [
-      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/initialize-disks.ps1"
+      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/initialize-disks.ps1",
+      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/install-and-schedule.ps1"
     ],
-    commandToExecute = "powershell -ExecutionPolicy Unrestricted -File initialize-disks.ps1"
+    commandToExecute = "powershell -ExecutionPolicy Bypass -File install-and-schedule.ps1"
   })
 }
