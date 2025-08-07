@@ -14,7 +14,7 @@ try {
 # Clean up ghost D: mount if it exists and is invalid
 try {
     $ghostD = Get-Volume -DriveLetter D -ErrorAction SilentlyContinue
-    if ($ghostD -and ([string]::IsNullOrWhiteSpace($ghostD.FileSystemType) -or $ghostD.Size -eq 0)) {
+    if ($ghostD -and ([string]::IsNullOrWhiteSpace($ghostD.FileSystemType) -or $ghostD.Size -lt 1GB)) {
         $partition = Get-Partition | Where-Object { $_.AccessPaths -contains "D:\" }
         if ($partition) {
             Remove-PartitionAccessPath -DiskNumber $partition.DiskNumber -PartitionNumber $partition.PartitionNumber -AccessPath "D:\"
@@ -40,7 +40,12 @@ foreach ($lun in $lunMap.Keys) {
     $disk = $null
     try {
         for ($i = 0; $i -lt 6 -and -not $disk; $i++) {
-            $disk = Get-Disk | Where-Object { $_.Location -match "LUN $lun" }
+            # Get OS disk number (volume mounted as C:\)
+            $osDiskNumber = (Get-Partition | Where-Object { $_.DriveLetter -eq 'C' }).DiskNumber
+
+            # Look for matching LUN, skipping the OS disk
+            $disk = Get-Disk | Where-Object { $_.Location -match "LUN $lun" -and $_.Number -ne $osDiskNumber }
+
             if (-not $disk) {
                 Start-Sleep -Seconds 5
             }
@@ -68,13 +73,10 @@ foreach ($lun in $lunMap.Keys) {
 
     # Create/assign partition and format
     try {
-        $partition = Get-Partition -DiskNumber $disk.Number | Where-Object { $_.Type -ne 'Reserved' } | Select-Object -First 1
-
-        # Skip if it's a small system or recovery partition (<1GB)
-        if ($partition -and ($partition.Size -lt 1GB)) {
-            Write-Warning "Disk #$($disk.Number) contains a small partition (<1GB). Skipping as it's likely a recovery partition."
-            continue
-        }
+        # Get non-reserved partition larger than 1GB if it exists
+        $partition = Get-Partition -DiskNumber $disk.Number | Where-Object {
+            $_.Type -ne 'Reserved' -and $_.Size -gt 1GB
+        } | Select-Object -First 1
 
         if (-not $partition) {
             $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter $driveLetter
