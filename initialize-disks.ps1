@@ -1,3 +1,5 @@
+Start-Sleep -Seconds 60
+
 # Reletter DVD drive to X:
 try {
     $dvd = Get-WmiObject -Query "SELECT * FROM Win32_Volume WHERE DriveType = 5"
