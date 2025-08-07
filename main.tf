@@ -96,6 +96,16 @@ resource "azurerm_managed_disk" "disk_g" {
   zone                 = "1"
 }
 
+resource "azurerm_managed_disk" "disk_h" {
+  name                 = "${var.vm_name}_DataDisk_H"
+  location             = var.location
+  resource_group_name  = var.resource_group_name
+  disk_size_gb         = var.disk_h_size
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  zone                 = "1"
+}
+
 resource "azurerm_virtual_machine_data_disk_attachment" "attach_d" {
   virtual_machine_id = azurerm_virtual_machine.sql_vm.id
   managed_disk_id    = azurerm_managed_disk.disk_d.id
@@ -121,6 +131,13 @@ resource "azurerm_virtual_machine_data_disk_attachment" "attach_g" {
   virtual_machine_id = azurerm_virtual_machine.sql_vm.id
   managed_disk_id    = azurerm_managed_disk.disk_g.id
   lun                = 3
+  caching            = "None"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "attach_h" {
+  virtual_machine_id = azurerm_virtual_machine.sql_vm.id
+  managed_disk_id    = azurerm_managed_disk.disk_h.id
+  lun                = 4
   caching            = "None"
 }
 

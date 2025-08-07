@@ -1,5 +1,5 @@
 Start-Sleep -Seconds 90
-#
+
 # Reletter DVD drive to X:
 try {
     $dvd = Get-WmiObject -Query "SELECT * FROM Win32_Volume WHERE DriveType = 5"
@@ -27,30 +27,25 @@ try {
     Write-Warning "Failed to remove ghost D: access path: $($_.Exception.Message)"
 }
 
-# Define expected LUN-to-drive-letter mappings
+# Define LUN-to-drive-letter and label mappings
 $lunMap = @{
-    0 = 'D'
-    1 = 'E'
-    2 = 'F'
-    3 = 'G'
+    0 = @{ DriveLetter = 'D'; Label = 'EDBS' }
+    1 = @{ DriveLetter = 'E'; Label = 'SQLInstance' }
+    2 = @{ DriveLetter = 'F'; Label = 'Data' }
+    3 = @{ DriveLetter = 'G'; Label = 'Log' }
+		4 = @{ DriveLetter = 'H'; Label = 'Temporary Storage' }
 }
 
 foreach ($lun in $lunMap.Keys) {
-    $driveLetter = $lunMap[$lun]
+    $driveLetter = $lunMap[$lun].DriveLetter
+    $volumeLabel = $lunMap[$lun].Label
 
-    # Wait for disk at LUN to appear (retry 6x, up to 30 seconds)
     $disk = $null
     try {
         for ($i = 0; $i -lt 6 -and -not $disk; $i++) {
-            # Get OS disk number (volume mounted as C:\)
             $osDiskNumber = (Get-Partition | Where-Object { $_.DriveLetter -eq 'C' }).DiskNumber
-
-            # Look for matching LUN, skipping the OS disk
             $disk = Get-Disk | Where-Object { $_.Location -match "LUN $lun" -and $_.Number -ne $osDiskNumber }
-
-            if (-not $disk) {
-                Start-Sleep -Seconds 5
-            }
+            if (-not $disk) { Start-Sleep -Seconds 5 }
         }
     } catch {
         Write-Warning "Error while polling for LUN ${lun}: $($_.Exception.Message)"
@@ -63,7 +58,6 @@ foreach ($lun in $lunMap.Keys) {
 
     Write-Output "Found disk at LUN ${lun} (Disk #$($disk.Number))"
 
-    # Initialize if needed
     try {
         if ($disk.PartitionStyle -eq 'RAW') {
             Initialize-Disk -Number $disk.Number -PartitionStyle GPT -Confirm:$false
@@ -73,9 +67,7 @@ foreach ($lun in $lunMap.Keys) {
         Write-Warning "Initialization failed for Disk #$($disk.Number): $($_.Exception.Message)"
     }
 
-    # Create/assign partition and format
     try {
-        # Get non-reserved partition larger than 1GB if it exists
         $partition = Get-Partition -DiskNumber $disk.Number | Where-Object {
             $_.Type -ne 'Reserved' -and $_.Size -gt 1GB
         } | Select-Object -First 1
@@ -92,8 +84,8 @@ foreach ($lun in $lunMap.Keys) {
 
         $volume = Get-Volume -DriveLetter $driveLetter -ErrorAction SilentlyContinue
         if (-not $volume -or [string]::IsNullOrWhiteSpace($volume.FileSystem)) {
-            Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel "DataDisk${driveLetter}" -Confirm:$false -Force
-            Write-Output "Formatted DataDisk${driveLetter} on drive ${driveLetter}:"
+            Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel $volumeLabel -Confirm:$false -Force
+            Write-Output "Formatted $volumeLabel on drive ${driveLetter}:"
         } else {
             Write-Output "Drive ${driveLetter}: already formatted as $($volume.FileSystem)"
         }

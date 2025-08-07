@@ -60,6 +60,12 @@ variable "disk_g_size" {
   default     = 1024
 }
 
+variable "disk_h_size" {
+  description = "Size of H drive in GB"
+  type        = number
+  default     = 60
+}
+
 variable "subscription_id" {
   description = "The Azure subscription ID where resources will be created."
   type        = string
