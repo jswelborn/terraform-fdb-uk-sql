@@ -21,7 +21,7 @@ try {
 
     # Define task
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`""
-    $trigger = New-ScheduledTaskTrigger -AtStartup -Delay "PT2M"
+    $trigger = New-ScheduledTaskTrigger -AtStartup 
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -RunLevel Highest
 
     # Register it
