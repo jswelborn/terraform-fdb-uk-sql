@@ -184,8 +184,8 @@ resource "azurerm_virtual_machine_extension" "disk_init" {
 
   settings = jsonencode({
     fileUris = [
-      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/initialize-disks.ps1",
-      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/install-and-schedule.ps1"
+      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/environments/non_prod/initialize-disks.ps1",
+      "https://raw.githubusercontent.com/jswelborn/terraform-fdb-uk-sql/main/environments/non_prod/install-and-schedule.ps1"
     ],
     commandToExecute = "powershell -ExecutionPolicy Bypass -Command \"Start-Sleep -Seconds 60; New-Item -ItemType Directory -Path 'C:\\Temp' -Force; Copy-Item -Path '.\\*' -Destination 'C:\\Temp' -Force; & 'C:\\Temp\\install-and-schedule.ps1'\""
   })
