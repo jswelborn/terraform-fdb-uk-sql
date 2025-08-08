@@ -13,6 +13,10 @@ resource "azurerm_network_interface" "sql_nic" {
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine" "sql_vm" {
@@ -25,6 +29,10 @@ resource "azurerm_virtual_machine" "sql_vm" {
 
   delete_data_disks_on_termination = true
   delete_os_disk_on_termination    = true
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   storage_image_reference {
     publisher = "MicrosoftSQLServer"
@@ -54,6 +62,10 @@ resource "azurerm_virtual_machine" "sql_vm" {
 resource "azurerm_mssql_virtual_machine" "sql_config" {
   virtual_machine_id = azurerm_virtual_machine.sql_vm.id
   sql_license_type   = "PAYG"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_managed_disk" "disk_d" {
@@ -64,7 +76,12 @@ resource "azurerm_managed_disk" "disk_d" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   zone                 = "1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
+
 
 resource "azurerm_managed_disk" "disk_e" {
   name                 = "${var.vm_name}_DataDisk_E"
@@ -74,6 +91,10 @@ resource "azurerm_managed_disk" "disk_e" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   zone                 = "1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_managed_disk" "disk_f" {
@@ -84,6 +105,10 @@ resource "azurerm_managed_disk" "disk_f" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   zone                 = "1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_managed_disk" "disk_g" {
@@ -94,6 +119,10 @@ resource "azurerm_managed_disk" "disk_g" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   zone                 = "1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_managed_disk" "disk_h" {
@@ -104,6 +133,10 @@ resource "azurerm_managed_disk" "disk_h" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   zone                 = "1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "attach_d" {
@@ -167,6 +200,10 @@ resource "azurerm_network_security_group" "sql_nsg" {
     destination_port_ranges    = ["1433"]
     source_address_prefix      = "*"
     destination_address_prefix = "*"
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
